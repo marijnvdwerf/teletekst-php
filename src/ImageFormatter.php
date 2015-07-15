@@ -61,7 +61,7 @@ class ImageFormatter
 
         $doc = new DOMDocument('1.0', 'utf-8');
         $doc->preserveWhiteSpace = true;
-        $doc->loadHTML('<pre id="content">' . $page . '</pre>');
+        $doc->loadHTML('<pre id="content">' . utf8_decode($page) . '</pre>');
 
         $pre = (new DOMXpath($doc))->query("//pre")[0];
 
