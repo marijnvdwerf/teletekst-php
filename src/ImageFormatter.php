@@ -140,28 +140,19 @@ class ImageFormatter
         $xSteps = [0, round($charWidth / 2), $charWidth];
         $ySteps = [0, round($charHeight / 3), round($charHeight / 3 * 2), $charHeight];
 
-        if ($block[0] === 1) {
-            imagefilledrectangle($gd, $x, $y, $x + $xSteps[1], $y + $ySteps[1], $fg);
-        }
+        for ($row = 0; $row < 3; $row++) {
+            $cellY = $y + $ySteps[$row];
+            $cellYEnd = $y + $ySteps[$row + 1] - 1;
 
-        if ($block[1] === 1) {
-            imagefilledrectangle($gd, $x + $xSteps[1], $y, $x + $xSteps[2], $y + $ySteps[1], $fg);
-        }
+            for ($col = 0; $col < 2; $col++) {
+                $cellX = $x + $xSteps[$col];
+                $cellXEnd = $x + $xSteps[$col + 1] - 1;
 
-        if ($block[2] === 1) {
-            imagefilledrectangle($gd, $x, $y + $ySteps[1], $x + $xSteps[1], $y + $ySteps[2], $fg);
-        }
-
-        if ($block[3] === 1) {
-            imagefilledrectangle($gd, $x + $xSteps[1], $y + $ySteps[1], $x + $xSteps[2], $y + $ySteps[2], $fg);
-        }
-
-        if ($block[4] === 1) {
-            imagefilledrectangle($gd, $x, $y + $ySteps[2], $x + $xSteps[1], $y + $ySteps[3], $fg);
-        }
-
-        if ($block[5] === 1) {
-            imagefilledrectangle($gd, $x + $xSteps[1], $y + $ySteps[2], $x + $xSteps[2], $y + $ySteps[3], $fg);
+                $cellIndex = $row * 2 + $col;
+                if ($block[$cellIndex] === 1) {
+                    imagefilledrectangle($gd, $cellX, $cellY, $cellXEnd, $cellYEnd, $fg);
+                }
+            }
         }
     }
 }
