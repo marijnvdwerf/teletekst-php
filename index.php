@@ -19,8 +19,6 @@ function get($page)
 
 function drawBlock($gd, $x, $y, $charWidth, $charHeight, $block, $fg)
 {
-    $opacity = array_sum($block);
-
     $xSteps = [0, round($charWidth / 2), $charWidth];
     $ySteps = [0, round($charHeight / 3), round($charHeight / 3 * 2), $charHeight];
 
@@ -47,6 +45,27 @@ function drawBlock($gd, $x, $y, $charWidth, $charHeight, $block, $fg)
     if ($block[5] === 1) {
         imagefilledrectangle($gd, $x + $xSteps[1], $y + $ySteps[2], $x + $xSteps[2], $y + $ySteps[3], $fg);
     }
+}
+
+$blocks = [];
+$baseCharcode = 61472;
+for ($i = 0; $i <= 0b111111; $i++) {
+
+    $offset = 0;
+    if ($i >> 5 & 1 === 1) {
+        // if last bit is set
+        $offset += 0x20;
+    }
+
+    $charCode = '&#x' . dechex($baseCharcode + $i + $offset) . ';';
+    $blocks[html_entity_decode($charCode)] = [
+        $i >> 0 & 1,
+        $i >> 1 & 1,
+        $i >> 2 & 1,
+        $i >> 3 & 1,
+        $i >> 4 & 1,
+        $i >> 5 & 1,
+    ];
 }
 
 $map = get('100');
@@ -76,93 +95,10 @@ $doc = new DOMDocument('1.0', 'utf-8');
 $doc->preserveWhiteSpace = true;
 $doc->loadHTML('<pre id="content">' . $map->content . '</pre>');
 
-$xpath = new DOMXpath($doc);
-
-// example 1: for everything with an id
-$pre = $xpath->query("//pre")[0];
+$pre = (new DOMXpath($doc))->query("//pre")[0];
 
 $x = 0;
 $y = 0;
-
-$symbols = [
-    '&#xf020;',
-    '&#xf021;',
-    '&#xf022;',
-    '&#xf023;',
-    '&#xf025;',
-    '&#xf026;',
-    '&#xf027;',
-    '&#xf029;',
-    '&#xf02a;',
-    '&#xf02b;',
-    '&#xf02c;',
-    '&#xf02d;',
-    '&#xf02f;',
-    '&#xf030;',
-    '&#xf031;',
-    '&#xf036;',
-    '&#xf037;',
-    '&#xf038;',
-    '&#xf03a;',
-    '&#xf03c;',
-    '&#xf03e;',
-    '&#xf03f',
-    '&#xf060;',
-    '&#xf063;',
-    '&#xf065;',
-    '&#xf066;',
-    '&#xf067;',
-    '&#xf068;',
-    '&#xf06a;',
-    '&#xf06b;',
-    '&#xf06c;',
-    '&#xf06e;',
-    '&#xf06f;',
-    '&#xf070;',
-    '&#xf072;',
-    '&#xf074;',
-    '&#xf076;',
-    '&#xf077;',
-    '&#xf078;',
-    '&#xf07a;',
-    '&#xf07c;',
-    '&#xf07d;',
-    '&#xf07e;',
-    '&#xf07f;',
-    '&#xf034;',
-    '&#xf035;',
-    '&#xf071;',
-    '&#xf073;',
-    '&#xf075;'
-];
-
-$blocks = [];
-
-$baseCharcode = 61472;
-for ($i = 0; $i <= 0b111111; $i++) {
-
-    $offset = 0;
-    if ($i >> 5 & 1 === 1) {
-        // if last bit is set
-        $offset += 0x20;
-    }
-
-    $charCode = '&#x' . dechex($baseCharcode + $i + $offset) . ';';
-    $blocks[html_entity_decode($charCode)] = [
-        $i >> 0 & 1,
-        $i >> 1 & 1,
-        $i >> 2 & 1,
-        $i >> 3 & 1,
-        $i >> 4 & 1,
-        $i >> 5 & 1,
-    ];
-}
-
-$symbols2 = [];
-
-foreach ($symbols as &$s) {
-    $s = html_entity_decode($s);
-}
 
 foreach ($pre->childNodes as $component) {
 
@@ -192,45 +128,27 @@ foreach ($pre->childNodes as $component) {
     foreach ($chars as $char) {
         if ($char === "\n") {
             $x = 0;
-            $y += $dy;
+            $y += $charHeight;
             continue;
         }
 
-        $dx = $charWidth;
-        $dy = $charHeight;
-
         if ($bg !== null) {
-            imagefilledrectangle($gd, $x, $y, $x + $dx, $y + $dy, $bg);
+            imagefilledrectangle($gd, $x, $y, $x + $charWidth, $y + $charHeight, $bg);
         }
 
         if (isset($blocks[$char])) {
             drawBlock($gd, $x, $y, $charWidth, $charHeight, $blocks[$char], $fg);
         } else {
-            if (in_array($char, $symbols)) {
-                $char = '#';
-            } elseif (strlen($char) !== mb_strlen($char)) {
+            if (strlen($char) !== mb_strlen($char)) {
+                // Convert multibyte character to single-byte representation
                 $char = mb_convert_encoding($char, 'ISO-8859-2');
-            } elseif (urlencode($char) != $char && $char != ' ') {
-                $symbols2[] = $char;
             }
+
             imagestring($gd, GD_FONT, $x, $y, $char, $fg);
         }
 
-        $x += $dx;
-        if ($x >= $screenWidth) {
-            $x = 0;
-            $y += $dy;
-        }
+        $x += $charWidth;
     }
 }
 
-//var_dump(mb_list_encodings());
-
-$symbols2 = array_unique($symbols2);
-sort($symbols2);
-echo json_encode($symbols2);
-
 imagegif($gd, '702.gif');
-
-
-//var_dump($map);
