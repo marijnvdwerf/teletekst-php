@@ -106,7 +106,7 @@ class ImageFormatter
                 }
 
                 if ($bg !== null) {
-                    imagefilledrectangle($gd, $x, $y, $x + $charWidth, $y + $charHeight, $bg);
+                    imagefilledrectangle($gd, $x, $y, $x + $charWidth - 1, $y + $charHeight - 1, $bg);
                 }
 
                 if (isset($this->blocks[$char])) {
