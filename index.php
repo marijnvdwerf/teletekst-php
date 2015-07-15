@@ -104,6 +104,7 @@ foreach ($pre->childNodes as $component) {
 
     $bg = null;
     $fg = $colors['white'];
+    $doubleHeight = false;
 
     $text = $component->textContent;
 
@@ -113,6 +114,10 @@ foreach ($pre->childNodes as $component) {
             return trim($c);
         }, $classes);
         $classes = array_filter($classes);
+
+        if (array_search('doubleHeight', $classes) !== false) {
+            $doubleHeight = true;
+        }
 
         foreach ($colors as $name => $color) {
             if (array_search('bg-' . $name, $classes) !== false) {
@@ -145,6 +150,16 @@ foreach ($pre->childNodes as $component) {
             }
 
             imagestring($gd, GD_FONT, $x, $y, $char, $fg);
+        }
+
+
+
+        if ($doubleHeight) {
+            //Create temporary image
+            $temp = imagecreatetruecolor($charWidth, $charHeight * 2);
+            imagecopyresized($temp, $gd, 0, 0, $x, $y, $charWidth, $charHeight * 2, $charWidth, $charHeight);
+            imagecopy($gd, $temp, $x, $y, 0, 0, $charWidth, $charHeight * 2);
+            imagegif($temp, 'temp.gif');
         }
 
         $x += $charWidth;
