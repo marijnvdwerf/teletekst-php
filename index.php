@@ -19,14 +19,8 @@ function get($page) {
 function drawBlock($gd, $x, $y, $charWidth, $charHeight, $block, $fg) {
   $opacity = array_sum($block);
   
-  var_dump([$charWidth, $charHeight]);
-  
   $xSteps = [0, round($charWidth/2), $charWidth];
   $ySteps = [0, round($charHeight/3), round($charHeight/3*2), $charHeight];
-  
-  var_dump($xSteps);
-  var_dump($ySteps);
-  die();
   
   if($block[0] === 1) {
     imagefilledrectangle($gd, $x, $y, $x + $xSteps[1], $y + $ySteps[1], $fg);
@@ -123,8 +117,6 @@ $symbols2 = [];
 foreach($symbols as &$s) {
   $s = html_entity_decode($s);
 }
-
-var_dump($symbols);
 
 foreach($pre->childNodes as $component) {
 
